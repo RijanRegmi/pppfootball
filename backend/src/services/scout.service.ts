@@ -12,7 +12,7 @@ export class ScoutService {
     const all = await this.playerRepo.getLeagues();
     return all.map(seasonObj => ({
       season: seasonObj.season,
-      leagues: seasonObj.leagues.filter(lg => lg.includes('premier-league') || lg.includes('la-liga'))
+      leagues: seasonObj.leagues
     })).filter(seasonObj => seasonObj.leagues.length > 0);
   }
 
