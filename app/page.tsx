@@ -59,6 +59,16 @@ export default function DashboardPage() {
   const [prediction, setPrediction] = useState<any>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const [isMerged, setIsMerged] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load leagues on mount
   useEffect(() => {
@@ -495,7 +505,9 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Stage area for continuous physical chart merging */}
-                        <div className="relative min-h-[360px] flex items-center justify-center p-4">
+                        <div className={`relative transition-all duration-700 flex items-center justify-center p-4 ${
+                          isMobile ? (isMerged ? 'min-h-[320px]' : 'min-h-[580px]') : 'min-h-[360px]'
+                        }`}>
                           {/* Background glow aura that intensifies on merge */}
                           <motion.div
                             className="absolute w-64 h-64 rounded-full blur-3xl pointer-events-none"
@@ -510,15 +522,18 @@ export default function DashboardPage() {
                           />
 
                           {/* Stage Container holding both Green & Blue Charts */}
-                          <div className="relative w-full max-w-2xl h-[280px] flex items-center justify-center">
+                          <div className={`relative w-full max-w-2xl transition-all duration-700 flex items-center justify-center ${
+                            isMobile ? (isMerged ? 'h-[280px]' : 'h-[520px]') : 'h-[280px]'
+                          }`}>
 
-                            {/* ── Left Chart: Current Skill Radar (Flies in from Left) ── */}
+                            {/* ── Left / Top Chart: Current Skill Radar ── */}
                             <motion.div
                               className="absolute flex flex-col items-center justify-center"
-                              initial={{ opacity: 0, x: -350 }}
+                              initial={{ opacity: 0, x: isMobile ? 0 : -350, y: isMobile ? -350 : 0 }}
                               animate={{
                                 opacity: 1,
-                                x: isMerged ? 0 : -160,
+                                x: isMerged ? 0 : (isMobile ? 0 : -160),
+                                y: isMerged ? 0 : (isMobile ? -130 : 0),
                               }}
                               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                             >
@@ -532,17 +547,18 @@ export default function DashboardPage() {
                               <RadarChart
                                 data={prediction.current_radar}
                                 color="green"
-                                size={260}
+                                size={isMobile ? 220 : 260}
                               />
                             </motion.div>
 
-                            {/* ── Right Chart: Projected Skill Radar (Flies in from Right) ── */}
+                            {/* ── Right / Bottom Chart: Projected Skill Radar ── */}
                             <motion.div
                               className="absolute flex flex-col items-center justify-center"
-                              initial={{ opacity: 0, x: 350 }}
+                              initial={{ opacity: 0, x: isMobile ? 0 : 350, y: isMobile ? 350 : 0 }}
                               animate={{
                                 opacity: 1,
-                                x: isMerged ? 0 : 160,
+                                x: isMerged ? 0 : (isMobile ? 0 : 160),
+                                y: isMerged ? 0 : (isMobile ? 130 : 0),
                               }}
                               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                             >
@@ -559,7 +575,7 @@ export default function DashboardPage() {
                                 isDashed={true}
                                 hideGrid={isMerged}
                                 hideLabels={isMerged}
-                                size={260}
+                                size={isMobile ? 220 : 260}
                               />
                             </motion.div>
 
