@@ -6,7 +6,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "next dev -p 3000",
     "dev:backend": "cd backend && npm run dev",
-    "build": "next build && cd backend && npm run build",
+    "build": "next build",
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:frontend": "next start -p 3000",
     "start:backend": "cd backend && npm start"
