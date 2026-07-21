@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { ScoutService } from '@/backend/src/services/scout.service';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://rijanregmi8_db_user:Nz71yfNWRZDJqmBE@qr.r1aggs9.mongodb.net/pppfootball?retryWrites=true&w=majority&appName=Qr';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 let isConnected = false;
 
 async function connectMongo() {
   if (isConnected || mongoose.connection.readyState >= 1) {
     isConnected = true;
+    return;
+  }
+  if (!MONGODB_URI) {
+    console.error('[Vercel Mongo Error] MONGODB_URI environment variable is missing.');
     return;
   }
   try {
