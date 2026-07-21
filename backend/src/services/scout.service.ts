@@ -34,6 +34,8 @@ export class ScoutService {
     const goals = safeFloat(row.goals);
     const assists = safeFloat(row.assists);
     const minutes = safeFloat(row.minutes);
+    const matches = safeFloat(row.games || row.ptime_games || row.gk_games);
+    const starts = safeFloat(row.games_starts || row.gk_games_starts);
     const xg = safeFloat(row.xg);
     const xgAssist = safeFloat(row.xg_assist || row.npxg_xg_assist);
     const marketVal = safeFloat(supp?.market_value_eur || row.market_value_eur || 5000000);
@@ -82,11 +84,23 @@ export class ScoutService {
       season: c.season,
       team: c.team,
       league: c.league,
+      matches: safeFloat(c.games || c.ptime_games || c.gk_games),
+      starts: safeFloat(c.games_starts || c.gk_games_starts),
       minutes: safeFloat(c.minutes),
       goals: safeFloat(c.goals),
       assists: safeFloat(c.assists),
       xg: round(safeFloat(c.xg)),
     }));
+
+    const careerTotals = {
+      total_matches: careerHistory.reduce((sum, c) => sum + c.matches, 0),
+      total_starts: careerHistory.reduce((sum, c) => sum + c.starts, 0),
+      total_goals: careerHistory.reduce((sum, c) => sum + c.goals, 0),
+      total_assists: careerHistory.reduce((sum, c) => sum + c.assists, 0),
+      total_minutes: careerHistory.reduce((sum, c) => sum + c.minutes, 0),
+      total_xg: round(careerHistory.reduce((sum, c) => sum + c.xg, 0)),
+      total_seasons: careerHistory.length,
+    };
 
     return {
       player_info: {
@@ -95,6 +109,8 @@ export class ScoutService {
         league: row.league,
         team: row.team,
         position: row.position || 'MF',
+        matches: matches,
+        starts: starts,
         minutes: minutes,
         age: safeFloat(row.age) || 24,
         market_value: formatEur(marketVal),
@@ -103,6 +119,8 @@ export class ScoutService {
       },
       radar_chart: radarStats,
       key_metrics: {
+        matches: matches,
+        starts: starts,
         goals: goals,
         assists: assists,
         xg: round(xg),
@@ -111,25 +129,26 @@ export class ScoutService {
       },
       detailed_stats: {
         shooting: {
-          shots: safeFloat(row.shots) || Math.round(goals * 3.2),
-          sot: safeFloat(row.shots_on_target) || Math.round(goals * 1.8),
-          sot_pct: round(safeFloat(row.shots_on_target_pct) || (goals > 0 ? 45.5 : 33.3), 1),
+          shots: safeFloat(row.shots),
+          sot: safeFloat(row.shots_on_target),
+          sot_pct: round(safeFloat(row.shots_on_target_pct), 1),
           xg: round(xg),
-          npxg: round(safeFloat(row.npxg) || xg * 0.85),
+          npxg: round(safeFloat(row.npxg)),
         },
         passing: {
-          passes_completed: safeFloat(row.passes_completed) || Math.round(minutes * 0.45),
-          pass_pct: round(safeFloat(row.passes_pct) || 82.4, 1),
-          key_passes: safeFloat(row.key_passes || row.sca) || Math.round(assists * 2.5),
-          progressive_passes: safeFloat(row.progressive_passes || row.prgp) || Math.round(minutes * 0.08),
+          passes_completed: safeFloat(row.passes_completed || row.passes),
+          pass_pct: round(safeFloat(row.passes_pct), 1),
+          key_passes: safeFloat(row.key_passes || row.sca || row.pass_assists),
+          progressive_passes: safeFloat(row.progressive_passes || row.pass_progressive_passes),
         },
         defending: {
-          tackles: safeFloat(row.tackles) || Math.round(minutes * 0.03),
-          interceptions: safeFloat(row.interceptions) || Math.round(minutes * 0.02),
-          clearances: safeFloat(row.clearances) || Math.round(minutes * 0.04),
-          aerial_pct: round(safeFloat(row.aerials_won_pct) || 58.2, 1),
+          tackles: safeFloat(row.tackles),
+          interceptions: safeFloat(row.interceptions),
+          clearances: safeFloat(row.clearances),
+          aerial_pct: round(safeFloat(row.aerials_won_pct), 1),
         },
       },
+      career_totals: careerTotals,
       career_history: careerHistory,
       raw_stats: row,
     };

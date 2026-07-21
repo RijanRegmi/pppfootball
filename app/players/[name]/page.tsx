@@ -18,6 +18,9 @@ import {
   Crosshair,
   Target,
   MapPin,
+  Activity,
+  Trophy,
+  History,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -120,41 +123,65 @@ export default function PlayerDetailPage({ params }: { params: Promise<{ name: s
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-4 border border-carbon-100 dark:border-carbon-800">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <CircleDollarSign className="w-3.5 h-3.5 text-pitch-500" />
-              <span className="metric-label">Market Value</span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-6">
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Activity className="w-3.5 h-3.5 text-pitch-500" />
+              <span className="metric-label">Matches (MP)</span>
             </div>
-            <span className="text-xl font-extrabold text-pitch-600 dark:text-pitch-400">
-              {info.market_value || 'N/A'}
+            <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
+              {info.matches || 0}
+              <span className="text-xs font-semibold text-carbon-400 ml-1">({info.starts || 0} Starts)</span>
             </span>
           </div>
-          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-4 border border-carbon-100 dark:border-carbon-800">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Target className="w-3.5 h-3.5 text-blue-500" />
-              <span className="metric-label">Age</span>
-            </div>
-            <span className="text-xl font-extrabold text-carbon-900 dark:text-carbon-100">
-              {info.age} <span className="text-sm font-semibold text-carbon-400">yrs</span>
-            </span>
-          </div>
-          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-4 border border-carbon-100 dark:border-carbon-800">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              <span className="metric-label">Minutes</span>
-            </div>
-            <span className="text-xl font-extrabold text-carbon-900 dark:text-carbon-100">
-              {info.minutes?.toLocaleString() || '—'}
-            </span>
-          </div>
-          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-4 border border-carbon-100 dark:border-carbon-800">
-            <div className="flex items-center gap-1.5 mb-1.5">
+
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
               <Crosshair className="w-3.5 h-3.5 text-purple-500" />
               <span className="metric-label">Goals / Assists</span>
             </div>
-            <span className="text-xl font-extrabold text-carbon-900 dark:text-carbon-100">
+            <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
               {metrics.goals ?? '—'} <span className="text-carbon-400">/</span> {metrics.assists ?? '—'}
+            </span>
+          </div>
+
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Target className="w-3.5 h-3.5 text-blue-500" />
+              <span className="metric-label">Expected (xG)</span>
+            </div>
+            <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
+              {metrics.xg ?? '—'}
+            </span>
+          </div>
+
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <span className="metric-label">Minutes</span>
+            </div>
+            <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
+              {info.minutes?.toLocaleString() || '—'}
+            </span>
+          </div>
+
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
+              <CircleDollarSign className="w-3.5 h-3.5 text-pitch-500" />
+              <span className="metric-label">Market Value</span>
+            </div>
+            <span className="text-lg font-extrabold text-pitch-600 dark:text-pitch-400">
+              {info.market_value || 'N/A'}
+            </span>
+          </div>
+
+          <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Calendar className="w-3.5 h-3.5 text-carbon-400" />
+              <span className="metric-label">Age</span>
+            </div>
+            <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
+              {info.age} <span className="text-xs font-semibold text-carbon-400 ml-1">yrs</span>
             </span>
           </div>
         </div>
@@ -207,6 +234,123 @@ export default function PlayerDetailPage({ params }: { params: Promise<{ name: s
                 </motion.div>
               ))}
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Career Progression History */}
+      {profile.career_history && profile.career_history.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.05 }}
+          className="card p-6 space-y-5"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h2 className="section-title">
+              <History className="w-5 h-5 text-amber-500" />
+              Multi-Season Career Progression History
+            </h2>
+            {profile.career_totals && (
+              <span className="badge-purple text-xs font-bold">
+                {profile.career_totals.total_seasons} Seasons Tracked
+              </span>
+            )}
+          </div>
+
+          {/* Career Overview Totals Banner */}
+          {profile.career_totals && (
+            <div className="bg-carbon-50 dark:bg-carbon-950/60 rounded-2xl p-4 border border-carbon-100 dark:border-carbon-800 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-pitch-600 dark:text-pitch-400">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                Career Totals Overview
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 pt-1">
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Matches</span>
+                  <span className="text-base sm:text-lg font-extrabold text-carbon-900 dark:text-white">
+                    {profile.career_totals.total_matches}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">
+                    {profile.career_totals.total_starts} Starts
+                  </span>
+                </div>
+
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Goals</span>
+                  <span className="text-base sm:text-lg font-extrabold text-pitch-600 dark:text-pitch-400">
+                    {profile.career_totals.total_goals}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">Total Scored</span>
+                </div>
+
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Assists</span>
+                  <span className="text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400">
+                    {profile.career_totals.total_assists}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">Key Passes</span>
+                </div>
+
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Minutes</span>
+                  <span className="text-base sm:text-lg font-extrabold text-carbon-900 dark:text-white">
+                    {profile.career_totals.total_minutes?.toLocaleString() || '0'}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">On Pitch</span>
+                </div>
+
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career xG</span>
+                  <span className="text-base sm:text-lg font-extrabold text-purple-600 dark:text-purple-400">
+                    {profile.career_totals.total_xg}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">Expected Goals</span>
+                </div>
+
+                <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                  <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Seasons</span>
+                  <span className="text-base sm:text-lg font-extrabold text-amber-500">
+                    {profile.career_totals.total_seasons}
+                  </span>
+                  <span className="text-[10px] font-semibold text-carbon-400 block">Active Years</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-x-auto -mx-6 px-6">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Season</th>
+                  <th>Team</th>
+                  <th>League</th>
+                  <th className="text-right">MP</th>
+                  <th className="text-right">Starts</th>
+                  <th className="text-right">Minutes</th>
+                  <th className="text-right">Goals</th>
+                  <th className="text-right">Assists</th>
+                  <th className="text-right">xG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {profile.career_history.map((c: any, idx: number) => (
+                  <tr key={`${c.season}-${c.team}-${idx}`}>
+                    <td className="font-extrabold text-carbon-900 dark:text-white">{c.season}</td>
+                    <td className="text-carbon-600 dark:text-carbon-400">{c.team}</td>
+                    <td className="text-carbon-400 dark:text-carbon-500 text-xs">{formatLeagueName(c.league)}</td>
+                    <td className="text-right font-extrabold text-carbon-900 dark:text-white tabular-nums">{c.matches ?? '—'}</td>
+                    <td className="text-right text-carbon-500 tabular-nums">{c.starts ?? '—'}</td>
+                    <td className="text-right tabular-nums">{c.minutes?.toLocaleString() || '—'}</td>
+                    <td className="text-right font-bold text-pitch-600 dark:text-pitch-400 tabular-nums">{c.goals}</td>
+                    <td className="text-right font-bold text-blue-600 dark:text-blue-400 tabular-nums">{c.assists}</td>
+                    <td className="text-right tabular-nums text-carbon-500">{c.xg}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </motion.div>
       )}

@@ -319,47 +319,68 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <CircleDollarSign className="w-3 h-3 text-pitch-500" />
-                      <span className="metric-label">Market Value</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Activity className="w-3 h-3 text-pitch-500" />
+                      <span className="metric-label">Matches (MP)</span>
                     </div>
-                    <span className="text-lg font-extrabold text-pitch-600 dark:text-pitch-400">
-                      <TypewriterText key={profile.player_info.market_value} text={profile.player_info.market_value || 'N/A'} speed={35} />
+                    <span className="text-base font-extrabold text-carbon-900 dark:text-carbon-100">
+                      <AnimatedNumber value={profile.player_info.matches || 0} formatAsLocale={false} />
+                      <span className="text-[10px] font-semibold text-carbon-400 ml-1">({profile.player_info.starts || 0} Starts)</span>
                     </span>
                   </div>
 
-                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
-                    <div className="flex items-center gap-1.5 mb-1">
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Crosshair className="w-3 h-3 text-purple-500" />
+                      <span className="metric-label">Goals / Assists</span>
+                    </div>
+                    <span className="text-base font-extrabold text-carbon-900 dark:text-carbon-100">
+                      <AnimatedNumber value={profile.key_metrics?.goals ?? 0} formatAsLocale={false} />
+                      <span className="text-carbon-400 mx-0.5">/</span>
+                      <AnimatedNumber value={profile.key_metrics?.assists ?? 0} formatAsLocale={false} />
+                    </span>
+                  </div>
+
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
                       <Target className="w-3 h-3 text-blue-500" />
-                      <span className="metric-label">Age</span>
+                      <span className="metric-label">Expected (xG)</span>
                     </div>
-                    <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
-                      <AnimatedNumber value={profile.player_info.age} formatAsLocale={false} />
-                      <span className="text-xs font-semibold text-carbon-400 ml-1">yrs</span>
+                    <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
+                      <AnimatedNumber value={profile.key_metrics?.xg ?? 0} formatAsLocale={false} />
                     </span>
                   </div>
 
-                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
-                    <div className="flex items-center gap-1.5 mb-1">
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
                       <Clock className="w-3 h-3 text-amber-500" />
                       <span className="metric-label">Minutes</span>
                     </div>
-                    <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
+                    <span className="text-base font-extrabold text-carbon-900 dark:text-carbon-100">
                       <AnimatedNumber value={profile.player_info.minutes || 0} />
                     </span>
                   </div>
 
-                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3.5 border border-carbon-100 dark:border-carbon-800">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Crosshair className="w-3 h-3 text-purple-500" />
-                      <span className="metric-label">G / A</span>
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <CircleDollarSign className="w-3 h-3 text-pitch-500" />
+                      <span className="metric-label">Market Value</span>
                     </div>
-                    <span className="text-lg font-extrabold text-carbon-900 dark:text-carbon-100">
-                      <AnimatedNumber value={profile.key_metrics?.goals ?? 0} formatAsLocale={false} />
-                      <span className="text-carbon-400 mx-0.5">/</span>
-                      <AnimatedNumber value={profile.key_metrics?.assists ?? 0} formatAsLocale={false} />
+                    <span className="text-base font-extrabold text-pitch-600 dark:text-pitch-400">
+                      <TypewriterText key={profile.player_info.market_value} text={profile.player_info.market_value || 'N/A'} speed={35} />
+                    </span>
+                  </div>
+
+                  <div className="bg-carbon-50 dark:bg-carbon-850 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Calendar className="w-3 h-3 text-carbon-400" />
+                      <span className="metric-label">Age</span>
+                    </div>
+                    <span className="text-base font-extrabold text-carbon-900 dark:text-carbon-100">
+                      <AnimatedNumber value={profile.player_info.age} formatAsLocale={false} />
+                      <span className="text-xs font-semibold text-carbon-400 ml-1">yrs</span>
                     </span>
                   </div>
                 </div>
@@ -739,12 +760,81 @@ export default function DashboardPage() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: 0.05 }}
-                  className="card p-6 space-y-4"
+                  className="card p-6 space-y-5"
                 >
-                  <h3 className="section-title">
-                    <History className="w-5 h-5 text-amber-500" />
-                    Multi-Season Career Progression History
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h3 className="section-title">
+                      <History className="w-5 h-5 text-amber-500" />
+                      Multi-Season Career Progression History
+                    </h3>
+                    {profile.career_totals && (
+                      <span className="badge-purple text-xs font-bold">
+                        {profile.career_totals.total_seasons} Seasons Tracked
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Career Overview Totals Banner */}
+                  {profile.career_totals && (
+                    <div className="bg-carbon-50 dark:bg-carbon-950/60 rounded-2xl p-4 border border-carbon-100 dark:border-carbon-800 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-pitch-600 dark:text-pitch-400">
+                        <Trophy className="w-4 h-4 text-amber-500" />
+                        Career Totals Overview
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 pt-1">
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Matches</span>
+                          <span className="text-base sm:text-lg font-extrabold text-carbon-900 dark:text-white">
+                            <AnimatedNumber value={profile.career_totals.total_matches} />
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">
+                            {profile.career_totals.total_starts} Starts
+                          </span>
+                        </div>
+
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Goals</span>
+                          <span className="text-base sm:text-lg font-extrabold text-pitch-600 dark:text-pitch-400">
+                            <AnimatedNumber value={profile.career_totals.total_goals} />
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">Total Scored</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Assists</span>
+                          <span className="text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400">
+                            <AnimatedNumber value={profile.career_totals.total_assists} />
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">Key Passes</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career Minutes</span>
+                          <span className="text-base sm:text-lg font-extrabold text-carbon-900 dark:text-white">
+                            <AnimatedNumber value={profile.career_totals.total_minutes} />
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">On Pitch</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Career xG</span>
+                          <span className="text-base sm:text-lg font-extrabold text-purple-600 dark:text-purple-400">
+                            <AnimatedNumber value={profile.career_totals.total_xg} />
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">Expected Goals</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-carbon-850/80 rounded-xl p-3 border border-carbon-100 dark:border-carbon-800">
+                          <span className="text-[10px] font-bold text-carbon-500 dark:text-carbon-400 uppercase block">Seasons</span>
+                          <span className="text-base sm:text-lg font-extrabold text-amber-500">
+                            {profile.career_totals.total_seasons}
+                          </span>
+                          <span className="text-[10px] font-semibold text-carbon-400 block">Active Years</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="overflow-x-auto -mx-6 px-6">
                     <table className="data-table">
@@ -752,6 +842,9 @@ export default function DashboardPage() {
                         <tr>
                           <th>Season</th>
                           <th>Team</th>
+                          <th>League</th>
+                          <th className="text-right">MP</th>
+                          <th className="text-right">Starts</th>
                           <th className="text-right">Minutes</th>
                           <th className="text-right">Goals</th>
                           <th className="text-right">Assists</th>
@@ -763,6 +856,9 @@ export default function DashboardPage() {
                           <tr key={`${c.season}-${c.team}-${idx}`}>
                             <td className="font-extrabold text-carbon-900 dark:text-white">{c.season}</td>
                             <td className="text-carbon-600 dark:text-carbon-400">{c.team}</td>
+                            <td className="text-carbon-400 dark:text-carbon-500 text-xs">{formatLeagueName(c.league)}</td>
+                            <td className="text-right font-extrabold text-carbon-900 dark:text-white tabular-nums">{c.matches ?? '—'}</td>
+                            <td className="text-right text-carbon-500 tabular-nums">{c.starts ?? '—'}</td>
                             <td className="text-right tabular-nums">{c.minutes?.toLocaleString() || '—'}</td>
                             <td className="text-right font-bold text-pitch-600 dark:text-pitch-400 tabular-nums">{c.goals}</td>
                             <td className="text-right font-bold text-blue-600 dark:text-blue-400 tabular-nums">{c.assists}</td>
