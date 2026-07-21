@@ -11,6 +11,7 @@ export const getShortlistCookies = (): string[] => {
   }
 };
 
+
 export const setShortlistCookie = (shortlist: string[]): void => {
   Cookies.set(SHORTLIST_KEY, JSON.stringify(shortlist), { expires: 30 });
 };
