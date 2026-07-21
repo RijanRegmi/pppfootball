@@ -27,7 +27,6 @@ const scoutService = new ScoutService();
 
 export async function POST(req: Request) {
   try {
-    await connectMongo();
     const body = await req.json();
     const { command, season = '2024-2025', league = '', team = '', player = '' } = body;
 
@@ -70,9 +69,8 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    await connectMongo();
     const status = await scoutService.getStatus();
-    return NextResponse.json({ status: 'ok', mongo: isConnected, counts: status });
+    return NextResponse.json({ status: 'ok', counts: status });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
