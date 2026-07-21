@@ -1,8 +1,8 @@
-import { PlayerRepository } from '../repositories/player.repository';
+import { SupabasePlayerRepository } from '../repositories/supabasePlayer.repository';
 import { safeFloat, formatEur, round } from '../utils/math.utils';
 
 export class ScoutService {
-  private playerRepo = new PlayerRepository();
+  private playerRepo = new SupabasePlayerRepository();
 
   public async getStatus() {
     return await this.playerRepo.getCounts();
