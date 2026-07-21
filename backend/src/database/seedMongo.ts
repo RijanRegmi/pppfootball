@@ -48,44 +48,42 @@ export async function runFullMongoSeed(): Promise<void> {
   console.log(`==================================================`);
 }
 
-function seedFileToCollection(filePath: string, model: mongoose.Model<any>): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let batch: any[] = [];
-    const BATCH_SIZE = 5000;
-    let totalInserted = 0;
+async function seedFileToCollection(filePath: string, model: mongoose.Model<any>): Promise<void> {
+  let batch: any[] = [];
+  const BATCH_SIZE = 5000;
+  let totalInserted = 0;
 
-    const readStream = fs.createReadStream(filePath).pipe(zlib.createGunzip()).pipe(csvParser());
+  const readStream = fs.createReadStream(filePath).pipe(zlib.createGunzip()).pipe(csvParser());
 
-    readStream.on('data', async (row) => {
-      batch.push(row);
-      if (batch.length >= BATCH_SIZE) {
-        readStream.pause();
-        const toInsert = [...batch];
-        batch = [];
-        try {
-          await model.insertMany(toInsert, { ordered: false });
-          totalInserted += toInsert.length;
-          console.log(`[Mongo Seeder] Uploaded ${totalInserted.toLocaleString()} documents to ${model.collection.name}...`);
-        } catch (e: any) {
-          // ignore batch duplicate errors
+  for await (const row of readStream) {
+    batch.push(row);
+    if (batch.length >= BATCH_SIZE) {
+      try {
+        await model.insertMany(batch, { ordered: false });
+        totalInserted += batch.length;
+        console.log(`[Mongo Seeder] Uploaded ${totalInserted.toLocaleString()} documents to ${model.collection.name}...`);
+      } catch (e: any) {
+        if (e.insertedDocs) {
+          totalInserted += e.insertedDocs.length;
         }
-        readStream.resume();
       }
-    });
+      batch = [];
+    }
+  }
 
-    readStream.on('end', async () => {
-      if (batch.length > 0) {
-        try {
-          await model.insertMany(batch, { ordered: false });
-          totalInserted += batch.length;
-        } catch (e) {}
+  if (batch.length > 0) {
+    try {
+      await model.insertMany(batch, { ordered: false });
+      totalInserted += batch.length;
+    } catch (e: any) {
+      if (e.insertedDocs) {
+        totalInserted += e.insertedDocs.length;
       }
-      console.log(`[Mongo Seeder] Finished uploading ${totalInserted.toLocaleString()} documents to ${model.collection.name}.`);
-      resolve();
-    });
+    }
+    batch = [];
+  }
 
-    readStream.on('error', (err) => reject(err));
-  });
+  console.log(`[Mongo Seeder] Finished uploading ${totalInserted.toLocaleString()} documents to ${model.collection.name}.`);
 }
 
 if (require.main === module) {
