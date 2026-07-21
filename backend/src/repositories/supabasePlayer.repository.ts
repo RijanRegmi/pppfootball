@@ -1,32 +1,25 @@
-import { Pool } from 'pg';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { PlayerRow } from '../types/scout.types';
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:pppfootball%4018910114@db.setqngddutxeruwvejfa.supabase.co:5432/postgres';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://setqngddutxeruwvejfa.supabase.co';
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable__W62rsixUHk3y_4aPnDKtw_3eMzF9Bj';
 
 export class SupabasePlayerRepository {
-  private pool: Pool;
+  private client: SupabaseClient;
 
   constructor() {
-    this.pool = new Pool({
-      connectionString,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30000,
-    });
+    this.client = createClient(SUPABASE_URL, SUPABASE_KEY);
   }
 
   public async getCounts(): Promise<{ player_rows: number; supplementary_rows: number }> {
     try {
-      const pRes = await this.pool.query('SELECT COUNT(*) FROM player_records');
-      const sRes = await this.pool.query('SELECT COUNT(*) FROM supplementary_data');
-      return {
-        player_rows: parseInt(pRes.rows[0].count, 10),
-        supplementary_rows: parseInt(sRes.rows[0].count, 10),
-      };
+      const { count: p } = await this.client.from('player_records').select('*', { count: 'exact', head: true });
+      const { count: s } = await this.client.from('supplementary_data').select('*', { count: 'exact', head: true });
+      return { player_rows: p || 0, supplementary_rows: s || 0 };
     } catch (err) {
       console.error('[Supabase Repo Error] getCounts:', err);
       return { player_rows: 0, supplementary_rows: 0 };
@@ -35,15 +28,28 @@ export class SupabasePlayerRepository {
 
   public async getLeagues(): Promise<{ season: string; leagues: string[] }[]> {
     try {
-      const query = `
-        SELECT season, ARRAY_AGG(DISTINCT league ORDER BY league) as leagues
-        FROM player_records
-        WHERE season IS NOT NULL AND league IS NOT NULL
-        GROUP BY season
-        ORDER BY season DESC;
-      `;
-      const res = await this.pool.query(query);
-      return res.rows.map((row) => ({ season: row.season, leagues: row.leagues }));
+      const { data, error } = await this.client.rpc('get_seasons_and_leagues');
+      if (error || !data) {
+        console.error('[Supabase Repo Error] rpc get_seasons_and_leagues:', error);
+        return [];
+      }
+
+      const map = new Map<string, Set<string>>();
+      for (const item of data) {
+        const season = item.season;
+        const league = item.league;
+        if (season && league) {
+          if (!map.has(season)) map.set(season, new Set());
+          map.get(season)!.add(league);
+        }
+      }
+
+      const result: { season: string; leagues: string[] }[] = [];
+      map.forEach((leaguesSet, season) => {
+        result.push({ season, leagues: Array.from(leaguesSet) });
+      });
+
+      return result;
     } catch (err) {
       console.error('[Supabase Repo Error] getLeagues:', err);
       return [];
@@ -52,14 +58,19 @@ export class SupabasePlayerRepository {
 
   public async getTeams(season: string, league: string): Promise<string[]> {
     try {
-      const query = `
-        SELECT DISTINCT team
-        FROM player_records
-        WHERE season = $1 AND league = $2 AND team IS NOT NULL
-        ORDER BY team ASC;
-      `;
-      const res = await this.pool.query(query, [season, league]);
-      return res.rows.map((r) => r.team);
+      const { data, error } = await this.client
+        .from('player_records')
+        .select('team')
+        .eq('season', season)
+        .eq('league', league);
+
+      if (error || !data) return [];
+
+      const set = new Set<string>();
+      for (const row of data) {
+        if (row.team) set.add(row.team);
+      }
+      return Array.from(set).sort();
     } catch (err) {
       console.error('[Supabase Repo Error] getTeams:', err);
       return [];
@@ -68,14 +79,20 @@ export class SupabasePlayerRepository {
 
   public async getPlayers(season: string, league: string, team: string): Promise<string[]> {
     try {
-      const query = `
-        SELECT DISTINCT player
-        FROM player_records
-        WHERE season = $1 AND league = $2 AND team = $3 AND player IS NOT NULL
-        ORDER BY player ASC;
-      `;
-      const res = await this.pool.query(query, [season, league, team]);
-      return res.rows.map((r) => r.player);
+      const { data, error } = await this.client
+        .from('player_records')
+        .select('player')
+        .eq('season', season)
+        .eq('league', league)
+        .eq('team', team);
+
+      if (error || !data) return [];
+
+      const set = new Set<string>();
+      for (const row of data) {
+        if (row.player) set.add(row.player);
+      }
+      return Array.from(set).sort();
     } catch (err) {
       console.error('[Supabase Repo Error] getPlayers:', err);
       return [];
@@ -84,15 +101,18 @@ export class SupabasePlayerRepository {
 
   public async getPlayerRow(season: string, league: string, team: string, player: string): Promise<PlayerRow | null> {
     try {
-      const query = `
-        SELECT raw_data
-        FROM player_records
-        WHERE season = $1 AND league = $2 AND team = $3 AND player = $4
-        LIMIT 1;
-      `;
-      const res = await this.pool.query(query, [season, league, team, player]);
-      if (res.rows.length === 0) return null;
-      return res.rows[0].raw_data as PlayerRow;
+      const { data, error } = await this.client
+        .from('player_records')
+        .select('raw_data')
+        .eq('season', season)
+        .eq('league', league)
+        .eq('team', team)
+        .eq('player', player)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return (data.raw_data as PlayerRow) || null;
     } catch (err) {
       console.error('[Supabase Repo Error] getPlayerRow:', err);
       return null;
@@ -101,13 +121,14 @@ export class SupabasePlayerRepository {
 
   public async getPlayersBySeason(season: string, minMinutes: number = 450): Promise<PlayerRow[]> {
     try {
-      const query = `
-        SELECT raw_data
-        FROM player_records
-        WHERE season = $1 AND minutes >= $2;
-      `;
-      const res = await this.pool.query(query, [season, minMinutes]);
-      return res.rows.map((r) => r.raw_data as PlayerRow);
+      const { data, error } = await this.client
+        .from('player_records')
+        .select('raw_data')
+        .eq('season', season)
+        .gte('minutes', minMinutes);
+
+      if (error || !data) return [];
+      return data.map((r) => r.raw_data as PlayerRow);
     } catch (err) {
       console.error('[Supabase Repo Error] getPlayersBySeason:', err);
       return [];
@@ -116,14 +137,14 @@ export class SupabasePlayerRepository {
 
   public async getPlayerCareerHistory(player: string): Promise<PlayerRow[]> {
     try {
-      const query = `
-        SELECT raw_data
-        FROM player_records
-        WHERE player = $1
-        ORDER BY season DESC;
-      `;
-      const res = await this.pool.query(query, [player]);
-      return res.rows.map((r) => r.raw_data as PlayerRow);
+      const { data, error } = await this.client
+        .from('player_records')
+        .select('raw_data')
+        .eq('player', player)
+        .order('season', { ascending: false });
+
+      if (error || !data) return [];
+      return data.map((r) => r.raw_data as PlayerRow);
     } catch (err) {
       console.error('[Supabase Repo Error] getPlayerCareerHistory:', err);
       return [];
@@ -132,15 +153,15 @@ export class SupabasePlayerRepository {
 
   public async getSupplementaryData(player: string): Promise<any | null> {
     try {
-      const query = `
-        SELECT raw_data
-        FROM supplementary_data
-        WHERE player = $1
-        LIMIT 1;
-      `;
-      const res = await this.pool.query(query, [player]);
-      if (res.rows.length === 0) return null;
-      return res.rows[0].raw_data;
+      const { data, error } = await this.client
+        .from('supplementary_data')
+        .select('raw_data')
+        .eq('player', player)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return data.raw_data || null;
     } catch (err) {
       console.error('[Supabase Repo Error] getSupplementaryData:', err);
       return null;
